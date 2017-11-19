@@ -16,11 +16,29 @@ Including another URLconf
 from django.conf.urls import url, include
 from django.contrib import admin
 from rest_framework import routers
-from sounderful.views import AccountListCreateAPIView, AccountDetailUpdateAPIView
+from sounderful.views import AccountListCreateAPIView, AccountDetailUpdateAPIView, PostListCreateAPIView, \
+    PostDetailUpdateAPIView, CommentListCreateAPIView, CommentDetailUpdateAPIView, LikeListCreateAPIView, \
+    LikeDetailUpdateAPIView, FollowingListCreateAPIView, FollowingDetailUpdateAPIView, NotificationListCreateAPIView, \
+    NotificationDetailUpdateAPIView
 
 router = routers.SimpleRouter()
 router.register(r'accounts', AccountListCreateAPIView, base_name="accounts")
 router.register(r'accounts', AccountDetailUpdateAPIView, base_name="accounts")
+
+router.register(r'posts', PostListCreateAPIView, base_name="posts")
+router.register(r'posts', PostDetailUpdateAPIView, base_name="posts")
+
+router.register(r'comments', CommentListCreateAPIView, base_name="comments")
+router.register(r'comments', CommentDetailUpdateAPIView, base_name="comments")
+
+router.register(r'likes', LikeListCreateAPIView, base_name="likes")
+router.register(r'likes', LikeDetailUpdateAPIView, base_name="likes")
+
+router.register(r'followings', FollowingListCreateAPIView, base_name="followings")
+router.register(r'followings', FollowingDetailUpdateAPIView, base_name="followings")
+
+router.register(r'notifications', NotificationListCreateAPIView, base_name="notifications")
+router.register(r'notifications', NotificationDetailUpdateAPIView, base_name="notifications")
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),

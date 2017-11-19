@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from django.db import models
 
 # Create your models here.
+from rest_framework import request
 
 
 class Account(models.Model):
@@ -22,7 +23,7 @@ class Account(models.Model):
 
 
 class Post(models.Model):
-    userName = models.ForeignKey(Account, db_constraint=False)
+    userName = models.ForeignKey(Account, db_constraint=False, to_field="userName", db_column="userName")
     title = models.CharField(max_length=32)
     urlTrack = models.CharField(max_length=255)
     urlImage = models.CharField(max_length=255, null=True, blank=True)
@@ -39,8 +40,8 @@ class Post(models.Model):
 
 
 class Comment(models.Model):
-    userName = models.ForeignKey(Account, db_constraint=False)
-    postId = models.ForeignKey(Post, db_constraint=False)
+    userName = models.ForeignKey(Account, db_constraint=False, to_field="userName", db_column="userName")
+    postId = models.ForeignKey(Post, db_constraint=False, to_field="id", db_column="postId")
     context = models.TextField()
     commentTime = models.DateTimeField()
 
@@ -50,8 +51,8 @@ class Comment(models.Model):
 
 
 class Like(models.Model):
-    userName = models.ForeignKey(Account, db_constraint=False)
-    postId = models.ForeignKey(Post, db_constraint=False)
+    userName = models.ForeignKey(Account, db_constraint=False, to_field="userName", db_column="userName", primary_key=True)
+    postId = models.ForeignKey(Post, db_constraint=False, to_field="id", db_column="postId", primary_key=True)
 
     class Meta:
         app_label = 'sounderful'
@@ -59,8 +60,8 @@ class Like(models.Model):
 
 
 class Following(models.Model):
-    userNameA = models.ForeignKey(Account, db_constraint=False, related_name='following_fk_1')
-    userNameB = models.ForeignKey(Account, db_constraint=False, related_name='following_fk_2')
+    userNameA = models.ForeignKey(Account, db_constraint=False, to_field="userName", db_column="userNameA", related_name='following_fk_1', primary_key=True)
+    userNameB = models.ForeignKey(Account, db_constraint=False, to_field="userName", db_column="userNameB", related_name='following_fk_2', primary_key=True)
 
     class Meta:
         app_label = 'sounderful'
@@ -68,9 +69,9 @@ class Following(models.Model):
 
 
 class Notification(models.Model):
-    userName = models.ForeignKey(Account, db_constraint=False)
+    userName = models.ForeignKey(Account, db_constraint=False, to_field="userName", db_column="userName")
     action = models.TextField()
-    postId = models.ForeignKey(Post, db_constraint=False)
+    postId = models.ForeignKey(Post, db_constraint=False, to_field="id", db_column="postId")
     notificationTime = models.DateTimeField()
 
     class Meta:
