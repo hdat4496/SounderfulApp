@@ -53,26 +53,21 @@ class Comment(models.Model):
 class Like(models.Model):
     userName = models.ForeignKey(Account, db_constraint=False, to_field="userName", db_column="userName")
     postId = models.ForeignKey(Post, db_constraint=False, to_field="id", db_column="postId")
-    unique_together = ("userName", "postId")
 
     class Meta:
         app_label = 'sounderful'
         db_table = 'like'
+        unique_together = ("userName", "postId")
 
 
 class Following(models.Model):
     userNameA = models.ForeignKey(Account, db_constraint=False, to_field="userName", db_column="userNameA", related_name='following_fk_1')
     userNameB = models.ForeignKey(Account, db_constraint=False, to_field="userName", db_column="userNameB", related_name='following_fk_2')
-    unique_together = ("userNameA", "userNameB")
-
-    def save(self, *args, **kwargs):
-        userNameA = self.userNameA
-        userNameB = self.userNameB
-        super(Following, self).save(*args, **kwargs)
 
     class Meta:
         app_label = 'sounderful'
         db_table = 'following'
+        unique_together = ("userNameA", "userNameB")
 
 
 class Notification(models.Model):

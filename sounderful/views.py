@@ -39,7 +39,7 @@ class AccountListCreateAPIView(viewsets.GenericViewSet, ListCreateAPIView):
     queryset = Account.objects.all()
 
 
-# Post for get
+# Post for get, put, delete
 class PostListSerializer(serializers.ModelSerializer):
     userName = AccountListSerializer(read_only=True)
 
@@ -48,7 +48,7 @@ class PostListSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-# Post for post, put, delete
+# Post for post
 class PostCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -74,7 +74,7 @@ class PostListCreateAPIView(viewsets.GenericViewSet, ListCreateAPIView,APIView):
         return PostListSerializer
 
 
-# Comment for get
+# Comment for get, put, delete
 class CommentListSerializer(serializers.ModelSerializer):
     userName = AccountListSerializer()
     postId = PostListSerializer()
@@ -84,7 +84,7 @@ class CommentListSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-# Comment for post, put, delete
+# Comment for post
 class CommentCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -109,17 +109,17 @@ class CommentListCreateAPIView(viewsets.GenericViewSet, ListCreateAPIView):
         return CommentListSerializer
 
 
-# Like for get
+# Like for get, put, delete
 class LikeListSerializer(serializers.ModelSerializer):
-    # userName = AccountListSerializer()
-    # postId = PostListSerializer()
+    userName = AccountListSerializer()
+    postId = PostListSerializer()
 
     class Meta:
         model = Like
         fields = '__all__'
 
 
-# Like for post, put, delete
+# Like for post
 class LikeCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -129,14 +129,14 @@ class LikeCreateSerializer(serializers.ModelSerializer):
 
 # API get detail, update, delete
 class LikeDetailUpdateAPIView(viewsets.GenericViewSet, RetrieveUpdateDestroyAPIView):
-    queryset = Like.objects.values_list('userName', 'postId').all()
+    queryset = Like.objects.all()
     serializer_class = LikeListSerializer
-    lookup_field = 'postId'
+    lookup_field = 'id'
 
 
 # API get list and create
 class LikeListCreateAPIView(viewsets.GenericViewSet, ListCreateAPIView):
-    queryset = Like.objects.values_list('userName', 'postId').all()
+    queryset = Like.objects.all()
 
     def get_serializer_class(self):
         if self.request.POST:
@@ -144,7 +144,7 @@ class LikeListCreateAPIView(viewsets.GenericViewSet, ListCreateAPIView):
         return LikeListSerializer
 
 
-# Following
+# Following for get, put, delete
 class FollowingListSerializer(serializers.ModelSerializer):
     userNameA = AccountListSerializer()
     userNameB = AccountListSerializer()
@@ -154,20 +154,32 @@ class FollowingListSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+# Following for post
+class FollowingCreateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Following
+        fields = '__all__'
+
+
 # API get detail, update, delete
 class FollowingDetailUpdateAPIView(viewsets.GenericViewSet, RetrieveUpdateDestroyAPIView):
-    queryset = Post.objects.all()
+    queryset = Following.objects.all()
     serializer_class = FollowingListSerializer
     lookup_field = 'id'
 
 
 # API get list and create
 class FollowingListCreateAPIView(viewsets.GenericViewSet, ListCreateAPIView):
-    serializer_class = FollowingListSerializer
     queryset = Following.objects.all()
 
+    def get_serializer_class(self):
+        if self.request.POST:
+            return FollowingCreateSerializer
+        return FollowingListSerializer
 
-# Notification
+
+# Notification for get, put, delete
 class NotificationListSerializer(serializers.ModelSerializer):
     userName = AccountListSerializer()
     postId = PostListSerializer()
@@ -177,7 +189,7 @@ class NotificationListSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-# Notification
+# Notification for post
 class NotificationCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -194,7 +206,6 @@ class NotificationDetailUpdateAPIView(viewsets.GenericViewSet, RetrieveUpdateDes
 
 # API get list and create
 class NotificationListCreateAPIView(viewsets.GenericViewSet, ListCreateAPIView):
-    serializer_class = NotificationListSerializer
     queryset = Notification.objects.all()
 
     def get_serializer_class(self):
