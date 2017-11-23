@@ -24,7 +24,7 @@ class Account(models.Model):
 
 class Post(models.Model):
     userName = models.ForeignKey(Account, db_constraint=False, to_field="userName", db_column="userName")
-    title = models.CharField(max_length=32)
+    title = models.CharField(max_length=255)
     urlTrack = models.CharField(max_length=255)
     urlImage = models.CharField(max_length=255, null=True, blank=True)
     postTime = models.DateTimeField()
@@ -32,7 +32,7 @@ class Post(models.Model):
     listenNumber = models.IntegerField()
 
     def __str__(self):
-        return self.title
+        return self.pk
 
     class Meta:
         app_label = 'sounderful'
@@ -51,8 +51,9 @@ class Comment(models.Model):
 
 
 class Like(models.Model):
-    userName = models.ForeignKey(Account, db_constraint=False, to_field="userName", db_column="userName", primary_key=True)
-    postId = models.ForeignKey(Post, db_constraint=False, to_field="id", db_column="postId", primary_key=True)
+    userName = models.ForeignKey(Account, db_constraint=False, to_field="userName", db_column="userName")
+    postId = models.ForeignKey(Post, db_constraint=False, to_field="id", db_column="postId")
+    unique_together = ("userName", "postId")
 
     class Meta:
         app_label = 'sounderful'
@@ -60,8 +61,14 @@ class Like(models.Model):
 
 
 class Following(models.Model):
-    userNameA = models.ForeignKey(Account, db_constraint=False, to_field="userName", db_column="userNameA", related_name='following_fk_1', primary_key=True)
-    userNameB = models.ForeignKey(Account, db_constraint=False, to_field="userName", db_column="userNameB", related_name='following_fk_2', primary_key=True)
+    userNameA = models.ForeignKey(Account, db_constraint=False, to_field="userName", db_column="userNameA", related_name='following_fk_1')
+    userNameB = models.ForeignKey(Account, db_constraint=False, to_field="userName", db_column="userNameB", related_name='following_fk_2')
+    unique_together = ("userNameA", "userNameB")
+
+    def save(self, *args, **kwargs):
+        userNameA = self.userNameA
+        userNameB = self.userNameB
+        super(Following, self).save(*args, **kwargs)
 
     class Meta:
         app_label = 'sounderful'

@@ -2,12 +2,15 @@
 from __future__ import unicode_literals
 
 from django.shortcuts import render
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework import serializers
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, detail_route
 from rest_framework.generics import (
     ListCreateAPIView,
     RetrieveUpdateDestroyAPIView,)
 from rest_framework import viewsets
+from rest_framework.views import APIView
+
 from sounderful.models import Account, Post, Comment, Like, Following, Notification
 
 
@@ -15,6 +18,7 @@ from sounderful.models import Account, Post, Comment, Like, Following, Notificat
 
 # Account
 class AccountListSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Account
         fields = '__all__'
@@ -33,8 +37,18 @@ class AccountListCreateAPIView(viewsets.GenericViewSet, ListCreateAPIView):
     queryset = Account.objects.all()
 
 
-# Post
+# Post for get
 class PostListSerializer(serializers.ModelSerializer):
+    userName = AccountListSerializer(read_only=True)
+
+    class Meta:
+        model = Post
+        fields = '__all__'
+
+
+# Post for post, put, delete
+class PostCreateSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Post
         fields = '__all__'
@@ -43,18 +57,34 @@ class PostListSerializer(serializers.ModelSerializer):
 # API get detail, update, delete
 class PostDetailUpdateAPIView(viewsets.GenericViewSet, RetrieveUpdateDestroyAPIView):
     queryset = Post.objects.all()
+
     serializer_class = PostListSerializer
     lookup_field = 'id'
 
 
 # API get list and create
-class PostListCreateAPIView(viewsets.GenericViewSet, ListCreateAPIView):
-    serializer_class = PostListSerializer
-    queryset = Post.objects.all()
+class PostListCreateAPIView(viewsets.GenericViewSet, ListCreateAPIView,APIView):
+    queryset = Post.objects.select_related().all()
+
+    def get_serializer_class(self):
+        if self.request.POST:
+            return PostCreateSerializer
+        return PostListSerializer
 
 
-# Comment
+# Comment for get
 class CommentListSerializer(serializers.ModelSerializer):
+    userName = AccountListSerializer()
+    postId = PostListSerializer()
+
+    class Meta:
+        model = Comment
+        fields = '__all__'
+
+
+# Comment for post, put, delete
+class CommentCreateSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Comment
         fields = '__all__'
@@ -69,12 +99,27 @@ class CommentDetailUpdateAPIView(viewsets.GenericViewSet, RetrieveUpdateDestroyA
 
 # API get list and create
 class CommentListCreateAPIView(viewsets.GenericViewSet, ListCreateAPIView):
-    serializer_class = CommentListSerializer
     queryset = Comment.objects.all()
 
+    def get_serializer_class(self):
+        if self.request.POST:
+            return CommentCreateSerializer
+        return CommentListSerializer
 
-# Like
+
+# Like for get
 class LikeListSerializer(serializers.ModelSerializer):
+    # userName = AccountListSerializer()
+    # postId = PostListSerializer()
+
+    class Meta:
+        model = Like
+        fields = '__all__'
+
+
+# Like for post, put, delete
+class LikeCreateSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Like
         fields = '__all__'
@@ -82,19 +127,26 @@ class LikeListSerializer(serializers.ModelSerializer):
 
 # API get detail, update, delete
 class LikeDetailUpdateAPIView(viewsets.GenericViewSet, RetrieveUpdateDestroyAPIView):
-    queryset = Like.objects.all()
+    queryset = Like.objects.values_list('userName', 'postId').all()
     serializer_class = LikeListSerializer
-    lookup_field = 'id'
+    lookup_field = 'postId'
 
 
 # API get list and create
 class LikeListCreateAPIView(viewsets.GenericViewSet, ListCreateAPIView):
-    serializer_class = LikeListSerializer
-    queryset = Like.objects.all()
+    queryset = Like.objects.values_list('userName', 'postId').all()
+
+    def get_serializer_class(self):
+        if self.request.POST:
+            return LikeCreateSerializer
+        return LikeListSerializer
 
 
 # Following
 class FollowingListSerializer(serializers.ModelSerializer):
+    userNameA = AccountListSerializer()
+    userNameB = AccountListSerializer()
+
     class Meta:
         model = Following
         fields = '__all__'
@@ -115,6 +167,17 @@ class FollowingListCreateAPIView(viewsets.GenericViewSet, ListCreateAPIView):
 
 # Notification
 class NotificationListSerializer(serializers.ModelSerializer):
+    userName = AccountListSerializer()
+    postId = PostListSerializer()
+
+    class Meta:
+        model = Notification
+        fields = '__all__'
+
+
+# Notification
+class NotificationCreateSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Notification
         fields = '__all__'
@@ -131,3 +194,8 @@ class NotificationDetailUpdateAPIView(viewsets.GenericViewSet, RetrieveUpdateDes
 class NotificationListCreateAPIView(viewsets.GenericViewSet, ListCreateAPIView):
     serializer_class = NotificationListSerializer
     queryset = Notification.objects.all()
+
+    def get_serializer_class(self):
+        if self.request.POST:
+            return NotificationCreateSerializer
+        return NotificationListSerializer
