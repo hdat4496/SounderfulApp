@@ -16,6 +16,8 @@ Including another URLconf
 from django.conf.urls import url, include
 from django.contrib import admin
 from rest_framework import routers
+
+from sounderful import views
 from sounderful.views import AccountListCreateAPIView, AccountDetailUpdateAPIView, PostListCreateAPIView, \
     PostDetailUpdateAPIView, CommentListCreateAPIView, CommentDetailUpdateAPIView, LikeListCreateAPIView, \
     LikeDetailUpdateAPIView, FollowingListCreateAPIView, FollowingDetailUpdateAPIView, NotificationListCreateAPIView, \
@@ -43,4 +45,5 @@ router.register(r'notifications', NotificationDetailUpdateAPIView, base_name="no
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url('^api/', include(router.urls)),
+    url(r'^posts/(?P<userName>.*)/follow/$', views.get_post_follow),
 ]

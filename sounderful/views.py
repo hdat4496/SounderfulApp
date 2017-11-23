@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+from MySQLdb import connections
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import serializers
@@ -10,7 +12,7 @@ from rest_framework.generics import (
     RetrieveUpdateDestroyAPIView,)
 from rest_framework import viewsets
 from rest_framework.views import APIView
-
+from django.db import connection
 from sounderful.models import Account, Post, Comment, Like, Following, Notification
 
 
@@ -199,3 +201,12 @@ class NotificationListCreateAPIView(viewsets.GenericViewSet, ListCreateAPIView):
         if self.request.POST:
             return NotificationCreateSerializer
         return NotificationListSerializer
+
+
+@api_view(['GET'])
+def get_post_follow(request, userName):
+    if request.method == 'GET':
+        posts = Post.objects.filter(userName__following_fk_2__userNameA=userName)
+        serializer = PostListSerializer(posts, many=True)
+        return JsonResponse(serializer.data, safe=False)
+
