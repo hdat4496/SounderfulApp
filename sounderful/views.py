@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from MySQLdb import connections
+from django.db.models import Count
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
@@ -42,10 +43,18 @@ class AccountListCreateAPIView(viewsets.GenericViewSet, ListCreateAPIView):
 # Post for get, put, delete
 class PostListSerializer(serializers.ModelSerializer):
     userName = AccountListSerializer(read_only=True)
+    num_of_like = serializers.SerializerMethodField()
+    num_of_comment = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
         fields = '__all__'
+
+    def get_num_of_like(self, obj):
+        return Like.objects.filter(postId=obj).count()
+
+    def get_num_of_comment(self, obj):
+        return Comment.objects.filter(postId=obj).count()
 
 
 # Post for post
@@ -65,7 +74,7 @@ class PostDetailUpdateAPIView(viewsets.GenericViewSet, RetrieveUpdateDestroyAPIV
 
 
 # API get list and create
-class PostListCreateAPIView(viewsets.GenericViewSet, ListCreateAPIView,APIView):
+class PostListCreateAPIView(viewsets.GenericViewSet, ListCreateAPIView, APIView):
     queryset = Post.objects.select_related().all()
 
     def get_serializer_class(self):
@@ -220,4 +229,3 @@ def get_post_follow(request, userName):
         posts = Post.objects.filter(userName__following_fk_2__userNameA=userName)
         serializer = PostListSerializer(posts, many=True)
         return JsonResponse(serializer.data, safe=False)
-
