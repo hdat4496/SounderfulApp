@@ -15,6 +15,7 @@ from rest_framework.generics import (
     RetrieveUpdateDestroyAPIView,)
 from rest_framework import viewsets
 from rest_framework.views import APIView
+from django.db.models import Q
 from django.db import connection
 from sounderful.models import Account, Post, Comment, Like, Following, Notification
 
@@ -240,7 +241,7 @@ class NotificationListCreateAPIView(viewsets.GenericViewSet, ListCreateAPIView):
 @api_view(['GET'])
 def get_post_follow(request, username):
     if request.method == 'GET':
-        posts = Post.objects.filter(userName__following_fk_2__userNameA=username)
+        posts = Post.objects.filter(Q(userName__following_fk_2__userNameA=username) | Q(userName=username)).order_by("-postTime")
         serializer = PostListSerializer(posts, many=True)
         return JsonResponse(serializer.data, safe=False)
 
@@ -266,4 +267,11 @@ def filter_notification_by_username(request, username):
     if request.method == 'GET':
         notifications = Notification.objects.filter(userName=username)
         serializer = NotificationListSerializer(notifications, many=True)
+        return JsonResponse(serializer.data, safe=False)
+
+@api_view(['GET'])
+def get_post_of_user(request, userNameParameter):
+    if request.method == 'GET':
+        posts = Post.objects.filter(userName=userNameParameter).order_by("-postTime")
+        serializer = PostListSerializer(posts, many=True)
         return JsonResponse(serializer.data, safe=False)
