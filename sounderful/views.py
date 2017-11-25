@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import re
+
 from MySQLdb import connections
 from django.db.models import Count
 from django.http import JsonResponse, HttpResponse
@@ -21,10 +23,22 @@ from sounderful.models import Account, Post, Comment, Like, Following, Notificat
 
 # Account
 class AccountListSerializer(serializers.ModelSerializer):
+    num_of_post = serializers.SerializerMethodField()
+    num_of_follow = serializers.SerializerMethodField()
+    num_of_follower = serializers.SerializerMethodField()
 
     class Meta:
         model = Account
         fields = '__all__'
+
+    def get_num_of_post(self, obj):
+        return Post.objects.filter(userName=obj).count()
+
+    def get_num_of_follow(self, obj):
+        return Following.objects.filter(userNameA=obj).count()
+
+    def get_num_of_follower(self, obj):
+        return Following.objects.filter(userNameB=obj).count()
 
 
 # API get detail, update, delete
@@ -224,8 +238,32 @@ class NotificationListCreateAPIView(viewsets.GenericViewSet, ListCreateAPIView):
 
 
 @api_view(['GET'])
-def get_post_follow(request, userName):
+def get_post_follow(request, username):
     if request.method == 'GET':
-        posts = Post.objects.filter(userName__following_fk_2__userNameA=userName)
+        posts = Post.objects.filter(userName__following_fk_2__userNameA=username)
         serializer = PostListSerializer(posts, many=True)
+        return JsonResponse(serializer.data, safe=False)
+
+
+@api_view(['GET'])
+def search_account_by_username(request, username):
+    if request.method == 'GET':
+        accounts = Account.objects.filter(userName__icontains=username)
+        serializer = AccountListSerializer(accounts, many=True)
+        return JsonResponse(serializer.data, safe=False)
+
+
+@api_view(['GET'])
+def search_post_by_title(request, title):
+    if request.method == 'GET':
+        posts = Post.objects.filter(title__icontains=title)
+        serializer = PostListSerializer(posts, many=True)
+        return JsonResponse(serializer.data, safe=False)
+
+
+@api_view(['GET'])
+def filter_notification_by_username(request, username):
+    if request.method == 'GET':
+        notifications = Notification.objects.filter(userName=username)
+        serializer = NotificationListSerializer(notifications, many=True)
         return JsonResponse(serializer.data, safe=False)

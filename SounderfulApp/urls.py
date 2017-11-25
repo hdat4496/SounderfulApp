@@ -45,5 +45,8 @@ router.register(r'notifications', NotificationDetailUpdateAPIView, base_name="no
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url('^api/', include(router.urls)),
-    url(r'^posts/(?P<userName>.*)/follow/$', views.get_post_follow),
+    url(r'^posts/(?P<username>.*)/follow/$', views.get_post_follow),
+    url(r'^accounts/search/(?P<username>.*)/$', views.search_account_by_username),
+    url(r'^posts/search/(?P<title>.*)/$', views.search_post_by_title),
+    url(r'^notifications/filter/(?P<username>.*)/$', views.filter_notification_by_username),
 ]

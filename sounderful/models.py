@@ -34,6 +34,9 @@ class Post(models.Model):
     def __str__(self):
         return self.pk
 
+    def __unicode__(self):
+        return self.title
+
     class Meta:
         app_label = 'sounderful'
         db_table = 'post'
