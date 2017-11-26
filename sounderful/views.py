@@ -279,7 +279,26 @@ def get_post_of_user(request, userNameParameter):
 @api_view(['GET'])
 def check_username(request, username):
     if request.method == 'GET':
-        account = Post.objects.filter(userName=username)
+        account = Account.objects.filter(userName=username)
+        if account:
+            check = {
+                'exists': 1
+            }
+            return JsonResponse(check, safe=False)
+        check = {
+            'exists': 0
+        }
+        return JsonResponse(check, safe=False)
+
+
+@api_view(['POST'])
+def check_login(request):
+    if request.method == 'POST':
+        username = request.POST.get('userName')
+        password = request.POST.get('password')
+        account = Account.objects.filter(Q(userName=username) & Q(password=password))
+        print account.query
+        print account
         if account:
             check = {
                 'exists': 1
