@@ -50,4 +50,5 @@ urlpatterns = [
     url(r'^posts/search/(?P<title>.*)/$', views.search_post_by_title),
     url(r'^notifications/filter/(?P<username>.*)/$', views.filter_notification_by_username),
     url(r'^posts/(?P<userNameParameter>.*)/', views.get_post_of_user),
+    url(r'^accounts/check/(?P<username>.*)/', views.check_username),
 ]

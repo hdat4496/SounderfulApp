@@ -2,21 +2,22 @@
 from __future__ import unicode_literals
 
 import re
+import urllib
+import urllib2
 
 from MySQLdb import connections
 from django.db.models import Count
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render
-from django.views.decorators.csrf import csrf_exempt
+from django.utils.encoding import uri_to_iri
 from rest_framework import serializers
 from rest_framework.decorators import api_view, detail_route
 from rest_framework.generics import (
     ListCreateAPIView,
-    RetrieveUpdateDestroyAPIView,)
+    RetrieveUpdateDestroyAPIView, )
 from rest_framework import viewsets
 from rest_framework.views import APIView
 from django.db.models import Q
-from django.db import connection
 from sounderful.models import Account, Post, Comment, Like, Following, Notification
 
 
@@ -74,7 +75,6 @@ class PostListSerializer(serializers.ModelSerializer):
 
 # Post for post
 class PostCreateSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Post
         fields = '__all__'
@@ -110,7 +110,6 @@ class CommentListSerializer(serializers.ModelSerializer):
 
 # Comment for post
 class CommentCreateSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Comment
         fields = '__all__'
@@ -145,7 +144,6 @@ class LikeListSerializer(serializers.ModelSerializer):
 
 # Like for post
 class LikeCreateSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Like
         fields = '__all__'
@@ -180,7 +178,6 @@ class FollowingListSerializer(serializers.ModelSerializer):
 
 # Following for post
 class FollowingCreateSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Following
         fields = '__all__'
@@ -215,7 +212,6 @@ class NotificationListSerializer(serializers.ModelSerializer):
 
 # Notification for post
 class NotificationCreateSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Notification
         fields = '__all__'
@@ -241,7 +237,8 @@ class NotificationListCreateAPIView(viewsets.GenericViewSet, ListCreateAPIView):
 @api_view(['GET'])
 def get_post_follow(request, username):
     if request.method == 'GET':
-        posts = Post.objects.filter(Q(userName__following_fk_2__userNameA=username) | Q(userName=username)).order_by("-postTime")
+        posts = Post.objects.filter(Q(userName__following_fk_2__userNameA=username) | Q(userName=username)).order_by(
+            "-postTime")
         serializer = PostListSerializer(posts, many=True)
         return JsonResponse(serializer.data, safe=False)
 
@@ -257,6 +254,7 @@ def search_account_by_username(request, username):
 @api_view(['GET'])
 def search_post_by_title(request, title):
     if request.method == 'GET':
+        title = urllib2.unquote(title)
         posts = Post.objects.filter(title__icontains=title)
         serializer = PostListSerializer(posts, many=True)
         return JsonResponse(serializer.data, safe=False)
@@ -269,9 +267,25 @@ def filter_notification_by_username(request, username):
         serializer = NotificationListSerializer(notifications, many=True)
         return JsonResponse(serializer.data, safe=False)
 
+
 @api_view(['GET'])
 def get_post_of_user(request, userNameParameter):
     if request.method == 'GET':
         posts = Post.objects.filter(userName=userNameParameter).order_by("-postTime")
         serializer = PostListSerializer(posts, many=True)
         return JsonResponse(serializer.data, safe=False)
+
+
+@api_view(['GET'])
+def check_username(request, username):
+    if request.method == 'GET':
+        account = Post.objects.filter(userName=username)
+        if account:
+            check = {
+                'exists': 1
+            }
+            return JsonResponse(check, safe=False)
+        check = {
+            'exists': 0
+        }
+        return JsonResponse(check, safe=False)
