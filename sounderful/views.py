@@ -308,3 +308,19 @@ def check_login(request):
             'exists': 0
         }
         return JsonResponse(check, safe=False)
+
+
+@api_view(['GET'])
+def check_follow(request, usernameA, usernameB):
+    if request.method == 'GET':
+        follow = Following.objects.filter(Q(userNameA=usernameA) & Q(userNameB=usernameB))
+        print follow.query
+        if follow:
+            check = {
+                'exists': 1
+            }
+            return JsonResponse(check, safe=False)
+        check = {
+            'exists': 0
+        }
+        return JsonResponse(check, safe=False)

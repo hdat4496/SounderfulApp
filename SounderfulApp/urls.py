@@ -51,5 +51,6 @@ urlpatterns = [
     url(r'^notifications/filter/(?P<username>.*)/$', views.filter_notification_by_username),
     url(r'^posts/(?P<userNameParameter>.*)/$', views.get_post_of_user),
     url(r'^accounts/check/(?P<username>.*)/$', views.check_username),
+    url(r'^accounts/checkfollow/(?P<usernameA>.*)/follow/(?P<usernameB>.*)/$', views.check_follow),
     url(r'^accounts/checklogin/$', views.check_login),
 ]
