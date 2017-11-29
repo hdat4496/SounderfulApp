@@ -324,3 +324,11 @@ def check_follow(request, usernameA, usernameB):
             'exists': 0
         }
         return JsonResponse(check, safe=False)
+
+
+@api_view(['GET'])
+def get_post_like(request, username):
+    if request.method == 'GET':
+        posts = Post.objects.filter(like__userName=username).order_by("-postTime")
+        serializer = PostListSerializer(posts, many=True)
+        return JsonResponse(serializer.data, safe=False)
