@@ -25,11 +25,11 @@ class Account(models.Model):
 class Post(models.Model):
     userName = models.ForeignKey(Account, db_constraint=False, to_field="userName", db_column="userName")
     title = models.CharField(max_length=255)
-    urlTrack = models.CharField(max_length=255)
+    urlTrack = models.CharField(max_length=255, blank=True, default="")
     urlImage = models.CharField(max_length=255, null=True, blank=True)
-    postTime = models.DateTimeField()
+    postTime = models.DateTimeField(auto_now_add=True, blank=True)
     description = models.TextField(null=True, blank=True)
-    listenNumber = models.IntegerField()
+    listenNumber = models.IntegerField(default=0, blank=True)
 
     def __str__(self):
         return self.pk
