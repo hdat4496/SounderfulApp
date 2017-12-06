@@ -251,10 +251,10 @@ def search_account_by_username(request, username):
         return JsonResponse(serializer.data, safe=False)
 
 
-@api_view(['GET'])
-def search_post_by_title(request, title):
-    if request.method == 'GET':
-        title = urllib2.unquote(title)
+@api_view(['POST'])
+def search_post_by_title(request):
+    if request.method == 'POST':
+        title = request.POST.get('title')
         posts = Post.objects.filter(title__icontains=title)
         serializer = PostListSerializer(posts, many=True)
         return JsonResponse(serializer.data, safe=False)
