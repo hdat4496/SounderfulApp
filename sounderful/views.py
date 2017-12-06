@@ -5,19 +5,24 @@ import re
 import urllib
 import urllib2
 
+import os
 from MySQLdb import connections
 from django.db.models import Count
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render
 from django.utils.encoding import uri_to_iri
-from rest_framework import serializers
+from rest_framework import serializers, status
 from rest_framework.decorators import api_view, detail_route
 from rest_framework.generics import (
     ListCreateAPIView,
     RetrieveUpdateDestroyAPIView, )
 from rest_framework import viewsets
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db.models import Q
+
+from SounderfulApp.settings import BASE_DIR
 from sounderful.models import Account, Post, Comment, Like, Following, Notification
 
 
@@ -332,3 +337,48 @@ def get_post_like(request, username):
         posts = Post.objects.filter(like__userName=username).order_by("-postTime")
         serializer = PostListSerializer(posts, many=True)
         return JsonResponse(serializer.data, safe=False)
+
+class ImageUploadView(APIView):
+    parser_classes = (MultiPartParser, FormParser, )
+
+    def post(self, request, format='jpg'):
+        up_file = request.FILES['file']
+        path = os.path.join(os.path.dirname(BASE_DIR),"SounderfulApp","Image")
+        destination = open(path+'/'+up_file.name, 'wb+')
+        for chunk in up_file.chunks():
+            destination.write(chunk)
+        return Response(up_file.name, status.HTTP_201_CREATED)
+
+
+class AudioUploadView(APIView):
+    parser_classes = (MultiPartParser, FormParser, )
+
+    def post(self, request, format='mp3'):
+        up_file = request.FILES['file']
+        path = os.path.join(os.path.dirname(BASE_DIR),"SounderfulApp","Track")
+        destination = open(path+'/'+up_file.name, 'wb+')
+        for chunk in up_file.chunks():
+            destination.write(chunk)
+        return Response(up_file.name, status.HTTP_201_CREATED)
+
+@api_view(['GET'])
+def download_image(request, fileName):
+        path = os.path.join(os.path.dirname(BASE_DIR), "SounderfulApp", "Image",fileName)
+        if os.path.exists(path):
+            with open(path,'rb') as fh:
+                respone = HttpResponse(fh.read(), content_type="image/*")
+                respone['Content-Disposition'] = 'inline; filename=' + os.path.basename(path)
+                return  respone
+            raise Http404
+        return Response({'test': path},status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['GET'])
+def download_audio(request, fileName):
+        path = os.path.join(os.path.dirname(BASE_DIR), "SounderfulApp", "Track",fileName)
+        if os.path.exists(path):
+            with open(path,'rb') as fh:
+                respone = HttpResponse(fh.read(), content_type="audio/*")
+                respone['Content-Disposition'] = 'inline; filename=' + os.path.basename(path)
+                return  respone
+            raise Http404
+        return Response({'test': path},status=status.HTTP_404_NOT_FOUND)

@@ -54,4 +54,9 @@ urlpatterns = [
     url(r'^accounts/check/(?P<username>.*)/$', views.check_username),
     url(r'^accounts/checkfollow/(?P<usernameA>.*)/follow/(?P<usernameB>.*)/$', views.check_follow),
     url(r'^accounts/checklogin/$', views.check_login),
+    url(r'^upload/image/', views.ImageUploadView.as_view()),
+    url(r'^upload/audio/', views.AudioUploadView.as_view()),
+    url(r'^download/image/(?P<fileName>.*)/', views.download_image),
+    url(r'^download/audio/(?P<fileName>.*)/', views.download_audio),
 ]
+
