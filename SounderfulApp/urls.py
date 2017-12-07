@@ -58,5 +58,9 @@ urlpatterns = [
     url(r'^upload/audio/', views.AudioUploadView.as_view()),
     url(r'^download/image/(?P<fileName>.*)/', views.download_image),
     url(r'^download/audio/(?P<fileName>.*)/', views.download_audio),
+    url(r'^likes/delete/$', views.delete_like),
+    url(r'^accounts/follow/delete/$', views.delete_follow),
+    url(r'^comments/(?P<postid>.*)/$', views.get_comments_of_post),
+
 ]
 

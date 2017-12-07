@@ -46,7 +46,7 @@ class Comment(models.Model):
     userName = models.ForeignKey(Account, db_constraint=False, to_field="userName", db_column="userName")
     postId = models.ForeignKey(Post, db_constraint=False, to_field="id", db_column="postId")
     context = models.TextField()
-    commentTime = models.DateTimeField()
+    commentTime = models.DateTimeField(auto_now_add=True, blank=True)
 
     class Meta:
         app_label = 'sounderful'

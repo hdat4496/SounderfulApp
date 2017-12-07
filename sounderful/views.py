@@ -7,8 +7,11 @@ import urllib2
 
 import os
 from MySQLdb import connections
+from django.core.files.storage import default_storage
 from django.db.models import Count
-from django.http import JsonResponse, HttpResponse
+from django.db.models.signals import post_delete, pre_delete
+from django.dispatch import receiver
+from django.http import JsonResponse, HttpResponse, HttpResponseNotFound
 from django.shortcuts import render
 from django.utils.encoding import uri_to_iri
 from rest_framework import serializers, status
@@ -334,9 +337,10 @@ def check_follow(request, usernameA, usernameB):
 @api_view(['GET'])
 def get_post_like(request, username):
     if request.method == 'GET':
-        posts = Post.objects.filter(like__userName=username).order_by("-postTime")
-        serializer = PostListSerializer(posts, many=True)
+        post = Post.objects.filter(like__userName=username)
+        serializer = PostListSerializer(post, many=True)
         return JsonResponse(serializer.data, safe=False)
+
 
 class ImageUploadView(APIView):
     parser_classes = (MultiPartParser, FormParser, )
@@ -361,6 +365,7 @@ class AudioUploadView(APIView):
             destination.write(chunk)
         return Response(up_file.name, status.HTTP_201_CREATED)
 
+
 @api_view(['GET'])
 def download_image(request, fileName):
         path = os.path.join(os.path.dirname(BASE_DIR), "SounderfulApp", "Image",fileName)
@@ -372,6 +377,7 @@ def download_image(request, fileName):
             raise Http404
         return Response({'test': path},status=status.HTTP_404_NOT_FOUND)
 
+
 @api_view(['GET'])
 def download_audio(request, fileName):
         path = os.path.join(os.path.dirname(BASE_DIR), "SounderfulApp", "Track",fileName)
@@ -382,3 +388,41 @@ def download_audio(request, fileName):
                 return  respone
             raise Http404
         return Response({'test': path},status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['POST'])
+def delete_like(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        postid = request.POST.get('postid')
+        like = Like.objects.filter(Q(userName=username) & Q(postId=postid))
+        if not like: return HttpResponseNotFound()
+        like.delete()
+        return HttpResponse(status=status.HTTP_200_OK)
+
+@receiver(pre_delete, sender=Post)
+def file_post_delete_handler(sender, instance, **kwargs):
+    post = instance
+    imagepath = os.path.join(os.path.dirname(BASE_DIR), "SounderfulApp", "Image", post.urlImage)
+    if os.path.isdir(imagepath) :
+        default_storage.delete(imagepath)
+    audiopath = os.path.join(os.path.dirname(BASE_DIR), "SounderfulApp", "Track", post.urlTrack)
+    if os.path.isdir(audiopath):
+        default_storage.delete(audiopath)
+
+@api_view(['POST'])
+def delete_follow(request):
+    if request.method == 'POST':
+        usernameA = request.POST.get('usernameA')
+        usernameB = request.POST.get('usernameB')
+        follow = Following.objects.filter(Q(userNameA=usernameA) & Q(userNameB=usernameB))
+        if not follow: return HttpResponseNotFound()
+        follow.delete()
+        return HttpResponse(status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+def get_comments_of_post(request, postid):
+    if request.method == 'GET':
+        comments = Comment.objects.filter(postId=postid).order_by("-commentTime")
+        serializer = CommentListSerializer(comments, many=True)
+        return JsonResponse(serializer.data, safe=False)
