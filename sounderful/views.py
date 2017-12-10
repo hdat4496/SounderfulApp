@@ -404,10 +404,10 @@ def delete_like(request):
 def file_post_delete_handler(sender, instance, **kwargs):
     post = instance
     imagepath = os.path.join(os.path.dirname(BASE_DIR), "SounderfulApp", "Image", post.urlImage)
-    if os.path.isdir(imagepath) :
+    if os.path.exists(imagepath):
         default_storage.delete(imagepath)
     audiopath = os.path.join(os.path.dirname(BASE_DIR), "SounderfulApp", "Track", post.urlTrack)
-    if os.path.isdir(audiopath):
+    if os.path.exists(audiopath):
         default_storage.delete(audiopath)
 
 @api_view(['POST'])
@@ -426,3 +426,54 @@ def get_comments_of_post(request, postid):
         comments = Comment.objects.filter(postId=postid).order_by("-commentTime")
         serializer = CommentListSerializer(comments, many=True)
         return JsonResponse(serializer.data, safe=False)
+
+class ImageModifyView(APIView):
+    parser_classes = (MultiPartParser, FormParser, )
+
+    def post(self, request, format=None):
+        up_file = request.FILES['file']
+        post_id = request.data.get('postid')
+        post = Post.objects.get(id=post_id)
+        image_path = os.path.join(os.path.dirname(BASE_DIR), "SounderfulApp", "Image", post.urlImage)
+        if os.path.isdir(image_path):
+            default_storage.delete(image_path)
+        path = os.path.join(os.path.dirname(BASE_DIR),"SounderfulApp","Image")
+        destination = open(path+'/'+up_file.name, 'wb+')
+        for chunk in up_file.chunks():
+            destination.write(chunk)
+        post.urlImage = up_file.name
+        post.save()
+        return Response(up_file.name, status.HTTP_201_CREATED)
+
+
+@api_view(['POST'])
+def modify_post(request):
+    if request.method == 'POST':
+        postid = request.POST.get('id')
+        title = request.POST.get('title')
+        description = request.POST.get('description')
+        post = Post.objects.get(id=postid)
+        if not post: return HttpResponseNotFound()
+        post.title = title
+        post.description = description
+        post.save()
+        return HttpResponse(status=status.HTTP_200_OK)
+
+
+class ImageUserModifyView(APIView):
+    parser_classes = (MultiPartParser, FormParser, )
+
+    def post(self, request, format=None):
+        up_file = request.FILES['file']
+        username = request.data.get('username')
+        account = Account.objects.get(userName=username)
+        image_path = os.path.join(os.path.dirname(BASE_DIR), "SounderfulApp", "Image", account.urlAvatar)
+        if os.path.isdir(image_path):
+            default_storage.delete(image_path)
+        path = os.path.join(os.path.dirname(BASE_DIR),"SounderfulApp","Image")
+        destination = open(path+'/'+up_file.name, 'wb+')
+        for chunk in up_file.chunks():
+            destination.write(chunk)
+        account.urlAvatar = up_file.name
+        account.save()
+        return Response(up_file.name, status.HTTP_201_CREATED)
