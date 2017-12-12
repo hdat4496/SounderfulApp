@@ -9,7 +9,7 @@ import os
 from MySQLdb import connections
 from django.core.files.storage import default_storage
 from django.db.models import Count
-from django.db.models.signals import post_delete, pre_delete
+from django.db.models.signals import post_delete, pre_delete, post_save
 from django.dispatch import receiver
 from django.http import JsonResponse, HttpResponse, HttpResponseNotFound
 from django.shortcuts import render
@@ -20,7 +20,7 @@ from rest_framework.generics import (
     ListCreateAPIView,
     RetrieveUpdateDestroyAPIView, )
 from rest_framework import viewsets
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db.models import Q
@@ -246,7 +246,7 @@ class NotificationListCreateAPIView(viewsets.GenericViewSet, ListCreateAPIView):
 def get_post_follow(request, username):
     if request.method == 'GET':
         posts = Post.objects.filter(Q(userName__following_fk_2__userNameA=username) | Q(userName=username)).order_by(
-            "-postTime")
+            "-postTime").distinct()
         serializer = PostListSerializer(posts, many=True)
         return JsonResponse(serializer.data, safe=False)
 
@@ -461,12 +461,15 @@ def modify_post(request):
 
 
 class ImageUserModifyView(APIView):
-    parser_classes = (MultiPartParser, FormParser, )
+    parser_classes = (MultiPartParser, FormParser, JSONParser, )
 
     def post(self, request, format=None):
         up_file = request.FILES['file']
-        username = request.data.get('username')
-        account = Account.objects.get(userName=username)
+        username = request.data.get('username').replace("\"","")
+        accountFilter = Account.objects.filter(userName=username)
+        if not accountFilter:
+            return HttpResponseNotFound()
+        account = accountFilter.get()
         image_path = os.path.join(os.path.dirname(BASE_DIR), "SounderfulApp", "Image", account.urlAvatar)
         if os.path.isdir(image_path):
             default_storage.delete(image_path)
@@ -477,3 +480,56 @@ class ImageUserModifyView(APIView):
         account.urlAvatar = up_file.name
         account.save()
         return Response(up_file.name, status.HTTP_201_CREATED)
+
+class BackgroundUserModifyView(APIView):
+    parser_classes = (MultiPartParser, FormParser, JSONParser, )
+
+    def post(self, request, format=None):
+        up_file = request.FILES['file']
+        username = request.data.get('username').replace("\"","")
+        accountFilter = Account.objects.filter(userName=username)
+        if not accountFilter:
+            return HttpResponseNotFound()
+        account = accountFilter.get()
+        image_path = os.path.join(os.path.dirname(BASE_DIR), "SounderfulApp", "Image", account.urlBackgroundImage)
+        if os.path.isdir(image_path):
+            default_storage.delete(image_path)
+        path = os.path.join(os.path.dirname(BASE_DIR),"SounderfulApp","Image")
+        destination = open(path+'/'+up_file.name, 'wb+')
+        for chunk in up_file.chunks():
+            destination.write(chunk)
+        account.urlBackgroundImage = up_file.name
+        account.save()
+        return Response(up_file.name, status.HTTP_201_CREATED)
+
+@receiver(post_save, sender=Like)
+def like_post_save_handler(sender, instance, **kwargs):
+    like = instance
+    username = like.userName
+    postId = like.postId
+    action = 'like'
+    post_username = Post.objects.filter(id=postId.id).get().userName
+    print post_username
+    if username != post_username:
+        notification = Notification.objects.create(userName=username, postId=postId, action=action)
+        notification.save()
+
+
+@receiver(post_save, sender=Comment)
+def comment_post_save_handler(sender, instance, **kwargs):
+    comment = instance
+    username = comment.userName
+    postId = comment.postId
+    action = 'comment'
+    post_username = Post.objects.filter(id=postId.id).get().userName
+    print post_username
+    if username != post_username:
+        notification = Notification.objects.create(userName=username, postId=postId, action=action)
+        notification.save()
+
+@api_view(['GET'])
+def get_notification_of_user(request, username):
+    if request.method == 'GET':
+        notification = Notification.objects.filter(postId__userName=username).order_by("-notificationTime")
+        serializer = NotificationListSerializer(notification, many=True)
+        return JsonResponse(serializer.data, safe=False)

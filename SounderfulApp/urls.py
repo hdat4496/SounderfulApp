@@ -48,6 +48,8 @@ urlpatterns = [
     url(r'^posts/(?P<username>.*)/follow/$', views.get_post_follow),
     url(r'^posts/(?P<username>.*)/like/$', views.get_post_like),
     url(r'^accounts/search/(?P<username>.*)/$', views.search_account_by_username),
+    url(r'^accounts/update/avatar/', views.ImageUserModifyView.as_view()),
+    url(r'^accounts/update/background/', views.BackgroundUserModifyView.as_view()),
     url(r'^posts/search/bytitle/$', views.search_post_by_title),
     url(r'^posts/update/info/$', views.modify_post),
     url(r'^posts/update/image/', views.ImageModifyView.as_view()),
@@ -63,7 +65,7 @@ urlpatterns = [
     url(r'^likes/delete/$', views.delete_like),
     url(r'^accounts/follow/delete/$', views.delete_follow),
     url(r'^comments/(?P<postid>.*)/$', views.get_comments_of_post),
-    url(r'^accounts/update/image/', views.ImageUserModifyView.as_view()),
+    url(r'^notifications/(?P<username>.*)/$', views.get_notification_of_user),
 
 ]
 

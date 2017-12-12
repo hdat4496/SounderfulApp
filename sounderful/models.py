@@ -77,7 +77,7 @@ class Notification(models.Model):
     userName = models.ForeignKey(Account, db_constraint=False, to_field="userName", db_column="userName")
     action = models.TextField()
     postId = models.ForeignKey(Post, db_constraint=False, to_field="id", db_column="postId")
-    notificationTime = models.DateTimeField()
+    notificationTime = models.DateTimeField(auto_now_add=True, blank=True)
 
     class Meta:
         app_label = 'sounderful'
