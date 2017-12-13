@@ -434,8 +434,8 @@ class ImageModifyView(APIView):
         up_file = request.FILES['file']
         post_id = request.data.get('postid')
         post = Post.objects.get(id=post_id)
-        image_path = os.path.join(os.path.dirname(BASE_DIR), "SounderfulApp", "Image", post.urlImage)
-        if os.path.isdir(image_path):
+        if post.urlImage is not None:
+            image_path = os.path.join(os.path.dirname(BASE_DIR), "SounderfulApp", "Image", post.urlImage)
             default_storage.delete(image_path)
         path = os.path.join(os.path.dirname(BASE_DIR),"SounderfulApp","Image")
         destination = open(path+'/'+up_file.name, 'wb+')
@@ -470,8 +470,8 @@ class ImageUserModifyView(APIView):
         if not accountFilter:
             return HttpResponseNotFound()
         account = accountFilter.get()
-        image_path = os.path.join(os.path.dirname(BASE_DIR), "SounderfulApp", "Image", account.urlAvatar)
-        if os.path.isdir(image_path):
+        if account.urlAvatar is not None:
+            image_path = os.path.join(os.path.dirname(BASE_DIR), "SounderfulApp", "Image", account.urlAvatar)
             default_storage.delete(image_path)
         path = os.path.join(os.path.dirname(BASE_DIR),"SounderfulApp","Image")
         destination = open(path+'/'+up_file.name, 'wb+')
@@ -491,8 +491,8 @@ class BackgroundUserModifyView(APIView):
         if not accountFilter:
             return HttpResponseNotFound()
         account = accountFilter.get()
-        image_path = os.path.join(os.path.dirname(BASE_DIR), "SounderfulApp", "Image", account.urlBackgroundImage)
-        if os.path.isdir(image_path):
+        if account.urlBackgroundImage is not None:
+            image_path = os.path.join(os.path.dirname(BASE_DIR), "SounderfulApp", "Image", account.urlBackgroundImage)
             default_storage.delete(image_path)
         path = os.path.join(os.path.dirname(BASE_DIR),"SounderfulApp","Image")
         destination = open(path+'/'+up_file.name, 'wb+')
